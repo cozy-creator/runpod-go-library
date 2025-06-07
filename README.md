@@ -179,19 +179,19 @@ client := runpod.NewClient("your-api-key",
 
 ## 🛠️ Pod Management Functions
 
-| Function | Description | Replaces GraphQL |
-|----------|-------------|------------------|
-| `LaunchRunPod()` | Quick pod creation with defaults | ✅ LaunchRunPod |
-| `CreatePod()` | Full pod creation with all options | ✅ podFindAndDeployOnDemand |
-| `GetPod()` | Get complete pod details | ✅ pod query |
-| `GetPodStatus()` | Get just the pod status | ✅ GetPodStatus |
-| `ListPods()` | List all pods with pagination | ✅ pods query |
-| `StopPod()` | Stop a running pod | ✅ podStop |
-| `ResumePod()` | Resume a stopped pod | ✅ podResume |
-| `TerminatePod()` | Terminate/delete a pod | ✅ podTerminate |
-| `GetPodLogs()` | Get pod logs | ➕ New feature |
-| `WaitForPodStatus()` | Wait for specific status | ➕ New feature |
-| `FindPodByName()` | Find pod by name | ➕ New feature |
+| Function | Description |
+|----------|-------------|
+| `LaunchRunPod()` | Quick pod creation with defaults |
+| `CreatePod()` | Full pod creation with all options |
+| `GetPod()` | Get complete pod details |
+| `GetPodStatus()` | Get just the pod status |
+| `ListPods()` | List all pods with pagination |
+| `StopPod()` | Stop a running pod |
+| `ResumePod()` | Resume a stopped pod |
+| `TerminatePod()` | Terminate/delete a pod |
+| `GetPodLogs()` | Get pod logs |
+| `WaitForPodStatus()` | Wait for specific status |
+| `FindPodByName()` | Find pod by name |
 
 ## 🚨 Error Handling
 
