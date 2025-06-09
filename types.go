@@ -1,9 +1,9 @@
 package runpod
 
 import (
-	// "encoding/json"
-	// "fmt"
-	// "strings"
+	"encoding/json"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -12,53 +12,53 @@ type ListOptions struct {
 	Offset int `json:"offset,omitempty"`
 }
 
-// type JSONTime struct {
-// 	time.Time
-// }
+type JSONTime struct {
+	time.Time
+}
 
-// const (
-// 	// RFC3339 format (what RunPod docs show and should use)
-// 	_layoutRFC3339Nano = time.RFC3339Nano
-// 	// RunPod's actual broken format (what they currently return)
-// 	_layoutRunPodBroken = "2006-01-02 15:04:05.000 -0700 MST"
-// )
+const (
+	// RFC3339 format (what RunPod docs show and should use)
+	_layoutRFC3339Nano = time.RFC3339Nano
+	// RunPod's actual broken format (what they currently return)
+	_layoutRunPodBroken = "2006-01-02 15:04:05.000 -0700 MST"
+)
 
-// // UnmarshalJSON lets us parse either RFC-3339 or RunPod's broken format.
-// func (jt *JSONTime) UnmarshalJSON(b []byte) error {
-// 	s := strings.Trim(string(b), `"`)
-// 	if s == "" || s == "null" {
-// 		// leave jt.Time zero
-// 		return nil
-// 	}
+// UnmarshalJSON lets us parse either RFC-3339 or RunPod's broken format.
+func (jt *JSONTime) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), `"`)
+	if s == "" || s == "null" {
+		// leave jt.Time zero
+		return nil
+	}
 
-// 	// Try RFC-3339 first (proper format)
-// 	if t, err := time.Parse(_layoutRFC3339Nano, s); err == nil {
-// 		jt.Time = t
-// 		return nil
-// 	}
+	// Try RFC-3339 first (proper format)
+	if t, err := time.Parse(_layoutRFC3339Nano, s); err == nil {
+		jt.Time = t
+		return nil
+	}
 
-// 	// Try without nanoseconds (common RFC3339 variant)
-// 	if t, err := time.Parse(time.RFC3339, s); err == nil {
-// 		jt.Time = t
-// 		return nil
-// 	}
+	// Try without nanoseconds (common RFC3339 variant)
+	if t, err := time.Parse(time.RFC3339, s); err == nil {
+		jt.Time = t
+		return nil
+	}
 
-// 	// Try RunPod's broken format
-// 	if t, err := time.Parse(_layoutRunPodBroken, s); err == nil {
-// 		jt.Time = t
-// 		return nil
-// 	}
+	// Try RunPod's broken format
+	if t, err := time.Parse(_layoutRunPodBroken, s); err == nil {
+		jt.Time = t
+		return nil
+	}
 
-// 	return fmt.Errorf("runpod.JSONTime: cannot parse %q as JSONTime", s)
-// }
+	return fmt.Errorf("runpod.JSONTime: cannot parse %q as JSONTime", s)
+}
 
-// // MarshalJSON always emits proper RFC-3339 format
-// func (jt JSONTime) MarshalJSON() ([]byte, error) {
-// 	if jt.Time.IsZero() {
-// 		return []byte("null"), nil
-// 	}
-// 	return json.Marshal(jt.Time.Format(time.RFC3339))
-// }
+// MarshalJSON always emits proper RFC-3339 format
+func (jt JSONTime) MarshalJSON() ([]byte, error) {
+	if jt.Time.IsZero() {
+		return []byte("null"), nil
+	}
+	return json.Marshal(jt.Time.Format(time.RFC3339))
+}
 
 type Pod struct {
 	ID                string            `json:"id"`
@@ -73,10 +73,10 @@ type Pod struct {
 	VolumeMountPath   string            `json:"volumeMountPath"`
 	CostPerHour       string            `json:"costPerHr"`
 	MachineID         string            `json:"machineId"`
-	CreatedAt         *time.Time         `json:"createdAt"`
+	CreatedAt         *JSONTime         `json:"createdAt"`
 	Env               map[string]string `json:"env"`
 	Ports             []string          `json:"ports"`
-	LastStartedAt     *time.Time        `json:"lastStartedAt"`
+	LastStartedAt     *JSONTime        `json:"lastStartedAt"`
 	AdjustedCostPerHr float64           `json:"adjustedCostPerHr"`
 	Locked            bool              `json:"locked"`
 	Interruptible     bool              `json:"interruptible"`
@@ -137,7 +137,7 @@ type Endpoint struct {
 	WorkersMax       int       `json:"workersMax"`
 	IdleTimeout      int       `json:"idleTimeout"`
 	ExecutionTimeout int       `json:"executionTimeoutMs"`
-	CreatedAt        *time.Time `json:"createdAt"`
+	CreatedAt        *JSONTime `json:"createdAt"`
 	Status           string    `json:"status"`
 	URL              string    `json:"url,omitempty"`
 }
@@ -171,9 +171,9 @@ type Job struct {
 	Input          interface{} `json:"input"`
 	Output         interface{} `json:"output,omitempty"`
 	Error          string      `json:"error,omitempty"`
-	CreatedAt      *time.Time   `json:"createdAt"`
-	StartedAt      *time.Time  `json:"startedAt,omitempty"`
-	CompletedAt    *time.Time  `json:"completedAt,omitempty"`
+	CreatedAt      *JSONTime   `json:"createdAt"`
+	StartedAt      *JSONTime  `json:"startedAt,omitempty"`
+	CompletedAt    *JSONTime  `json:"completedAt,omitempty"`
 	ExecutionTime  int         `json:"executionTimeMs,omitempty"`
 	RetryCount     int         `json:"retryCount,omitempty"`
 	EndpointID     string      `json:"endpointId,omitempty"`
@@ -205,7 +205,7 @@ type Template struct {
 	Env               map[string]string `json:"env"`
 	Ports             string            `json:"ports"`
 	DockerArgs        string            `json:"dockerArgs"`
-	CreatedAt         *time.Time         `json:"createdAt"`
+	CreatedAt         *JSONTime         `json:"createdAt"`
 	Runtime           *TemplateRuntime  `json:"runtime,omitempty"`
 }
 
@@ -278,7 +278,7 @@ type NetworkVolume struct {
 	Name         string    `json:"name"`
 	Size         int       `json:"size"`
 	DatacenterID string    `json:"datacenterId"`
-	CreatedAt    *time.Time `json:"createdAt"`
+	CreatedAt    *JSONTime `json:"createdAt"`
 	PodIds       []string  `json:"podIds,omitempty"`
 }
 
