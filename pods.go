@@ -26,8 +26,7 @@ func (c *Client) CreatePod(ctx context.Context, req *CreatePodRequest) (*Pod, er
 // CreateSpotPod creates a new spot/interruptible pod instance
 func (c *Client) CreateSpotPod(ctx context.Context, req *CreatePodRequest, bidPerGPU float64) (*Pod, error) {
 	// Set spot-specific fields
-	req.BidPerGPU = bidPerGPU
-	req.CloudType = "SECURE" // or "COMMUNITY" based on your needs
+	req.Interruptible = true
 
 	return c.CreatePod(ctx, req)
 }
@@ -136,7 +135,7 @@ func (c *Client) GetPodStatus(ctx context.Context, podID string) (string, error)
 	if err != nil {
 		return "", err
 	}
-	return pod.Status, nil
+	return pod.Status(), nil
 }
 
 // WaitForPodStatus waits for a pod to reach a specific status
@@ -151,13 +150,13 @@ func (c *Client) WaitForPodStatus(ctx context.Context, podID string, targetStatu
 			return nil, err
 		}
 
-		if strings.ToUpper(pod.Status) == strings.ToUpper(targetStatus) {
+		if strings.ToUpper(pod.Status()) == strings.ToUpper(targetStatus) {
 			return pod, nil
 		}
 
 		// Check if pod is in a terminal error state
-		if c.isPodInErrorState(pod.Status) {
-			return pod, fmt.Errorf("pod %s is in error state: %s", podID, pod.Status)
+		if c.isPodInErrorState(pod.Status()) {
+			return pod, fmt.Errorf("pod %s is in error state: %s", podID, pod.Status())
 		}
 
 		// Wait before next check
@@ -181,7 +180,7 @@ func (c *Client) ListPodsByStatus(ctx context.Context, status string, opts *List
 
 	var filteredPods []*Pod
 	for _, pod := range pods {
-		if strings.ToUpper(pod.Status) == strings.ToUpper(status) {
+		if strings.ToUpper(pod.Status()) == strings.ToUpper(status) {
 			filteredPods = append(filteredPods, pod)
 		}
 	}
@@ -231,7 +230,7 @@ func (c *Client) validateCreatePodRequest(req *CreatePodRequest) error {
 	if err := c.validateRequired("imageName", req.ImageName); err != nil {
 		return err
 	}
-	if err := c.validateRequired("gpuTypeId", req.GPUTypeID); err != nil {
+	if err := c.validateRequired("gpuTypeId", req.GPUTypeIDs); err != nil {
 		return err
 	}
 
@@ -249,8 +248,8 @@ func (c *Client) validateCreatePodRequest(req *CreatePodRequest) error {
 			return err
 		}
 	}
-	if req.MemoryInGB > 0 {
-		if err := c.validatePositive("memoryInGb", req.MemoryInGB); err != nil {
+	if req.VolumeInGB > 0 {
+		if err := c.validatePositive("volumeInGb", req.VolumeInGB); err != nil {
 			return err
 		}
 	}
@@ -261,11 +260,11 @@ func (c *Client) validateCreatePodRequest(req *CreatePodRequest) error {
 	}
 
 	// Validate bid price for spot instances
-	if req.BidPerGPU > 0 {
-		if err := c.validatePositiveFloat("bidPerGpu", req.BidPerGPU); err != nil {
-			return err
-		}
-	}
+	// if req.BidPerGPU > 0 {
+	// 	if err := c.validatePositiveFloat("bidPerGpu", req.BidPerGPU); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	// Validate cloud type
 	if req.CloudType != "" {
@@ -279,6 +278,21 @@ func (c *Client) validateCreatePodRequest(req *CreatePodRequest) error {
 		}
 		if !isValid {
 			return NewValidationErrorWithValue("cloudType", "must be either 'SECURE' or 'COMMUNITY'", req.CloudType)
+		}
+	}
+
+	// Validate compute type
+	if req.ComputeType != "" {
+		validComputeTypes := []string{"GPU", "CPU"}
+		isValid := false
+		for _, validType := range validComputeTypes {
+			if req.ComputeType == validType {
+				isValid = true
+				break
+			}
+		}
+		if !isValid {
+			return NewValidationErrorWithValue("computeType", "must be either 'GPU' or 'CPU'", req.ComputeType)
 		}
 	}
 
@@ -311,11 +325,11 @@ func (c *Client) LaunchRunPod(ctx context.Context, imageURL string, envVars map[
 	req := &CreatePodRequest{
 		Name:              fmt.Sprintf("pod-%d", time.Now().Unix()),
 		ImageName:         imageURL,
-		GPUTypeID:         "NVIDIA H100 80GB HBM3",
+		GPUTypeIDs:         []string{"NVIDIA H100 80GB HBM3"},
 		GPUCount:          1,
 		ContainerDiskInGB: 50, 
 		VCPUCount:         2,  
-		MemoryInGB:        15, 
+		VolumeInGB:        15, 
 		CloudType:         "SECURE",
 		Env:               envVars,
 		DockerArgs:        "--shm-size=1g", 

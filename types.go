@@ -10,24 +10,28 @@ type ListOptions struct {
 type Pod struct {
 	ID                string            `json:"id"`
 	Name              string            `json:"name"`
-	Status            string            `json:"status"`
-	ImageName         string            `json:"imageName"`
+	DesiredStatus     string            `json:"desiredStatus"`
+	ImageName         string            `json:"image"`
 	GPUCount          int               `json:"gpuCount"`
-	GPUTypeID         string            `json:"gpuTypeId"`
 	VCPUCount         int               `json:"vcpuCount"`
 	MemoryInGB        int               `json:"memoryInGb"`
 	ContainerDiskInGB int               `json:"containerDiskInGb"`
 	VolumeInGB        int               `json:"volumeInGb"`
 	VolumeMountPath   string            `json:"volumeMountPath"`
-	CostPerHour       float64           `json:"costPerHour"`
-	DatacenterID      string            `json:"datacenterId"`
+	CostPerHour       string            `json:"costPerHr"`
+	MachineID         string            `json:"machineId"`
 	CreatedAt         time.Time         `json:"createdAt"`
 	Env               map[string]string `json:"env"`
 	Ports             []string          `json:"ports"`
-	DockerArgs        string            `json:"dockerArgs"`
-	Runtime           *PodRuntime       `json:"runtime"`
-	MachineID         string            `json:"machineId"`
-	LastStartAt       *time.Time        `json:"lastStartAt"`
+	LastStartedAt     *time.Time        `json:"lastStartedAt"`
+	AdjustedCostPerHr float64           `json:"adjustedCostPerHr"`
+	Locked            bool              `json:"locked"`
+	Interruptible     bool              `json:"interruptible"`
+	PublicIP          string            `json:"publicIp,omitempty"`
+}
+
+func (p *Pod) Status() string {
+	return p.DesiredStatus
 }
 
 type PodRuntime struct {
@@ -37,29 +41,36 @@ type PodRuntime struct {
 }
 
 type CreatePodRequest struct {
-	Name              string            `json:"name"`
-	ImageName         string            `json:"imageName"`
-	GPUTypeID         string            `json:"gpuTypeId"`
-	GPUCount          int               `json:"gpuCount"`
-	VCPUCount         int               `json:"vcpuCount,omitempty"`
-	MemoryInGB        int               `json:"memoryInGb,omitempty"`
-	ContainerDiskInGB int               `json:"containerDiskInGb"`
-	VolumeInGB        int               `json:"volumeInGb,omitempty"`
-	VolumeMountPath   string            `json:"volumeMountPath,omitempty"`
-	DatacenterID      string            `json:"datacenterId,omitempty"`
-	Env               map[string]string `json:"env,omitempty"`
-	Ports             []string          `json:"ports,omitempty"`
-	DockerArgs        string            `json:"dockerArgs,omitempty"`
-	BidPerGPU         float64           `json:"bidPerGpu,omitempty"` // For spot instances
-	CloudType         string            `json:"cloudType,omitempty"` // "SECURE" or "COMMUNITY"
-	NetworkVolumeID   string            `json:"networkVolumeId,omitempty"`
+	Name                    string            `json:"name"`
+	ImageName               string            `json:"imageName"`
+	GPUTypeIDs              []string          `json:"gpuTypeIds"`
+	GPUCount                int               `json:"gpuCount"`
+	VCPUCount               int               `json:"vcpuCount,omitempty"`
+	ContainerDiskInGB       int               `json:"containerDiskInGb"`
+	VolumeInGB              int               `json:"volumeInGb,omitempty"`
+	VolumeMountPath         string            `json:"volumeMountPath,omitempty"`
+	DataCenterIDs           []string          `json:"dataCenterIds,omitempty"`
+	Env                     map[string]string `json:"env,omitempty"`
+	Ports                   []string          `json:"ports,omitempty"`
+	DockerArgs              string            `json:"dockerArgs,omitempty"`
+	NetworkVolumeID         string            `json:"networkVolumeId,omitempty"`
+	CloudType               string            `json:"cloudType,omitempty"`          // "SECURE" or "COMMUNITY"
+	Interruptible           bool              `json:"interruptible,omitempty"`      // For spot instances
+	SupportPublicIP         bool              `json:"supportPublicIp,omitempty"`
+	TemplateID              string            `json:"templateId,omitempty"`
+	
+	// Additional REST API fields
+	ComputeType             string            `json:"computeType,omitempty"`        // "GPU" or "CPU"
+	DockerEntrypoint        []string          `json:"dockerEntrypoint,omitempty"`
+	DockerStartCmd          []string          `json:"dockerStartCmd,omitempty"`
+	GPUTypePriority         string            `json:"gpuTypePriority,omitempty"`    
+	DataCenterPriority      string            `json:"dataCenterPriority,omitempty"` 
 }
+
 
 type UpdatePodRequest struct {
 	Name       string            `json:"name,omitempty"`
 	Env        map[string]string `json:"env,omitempty"`
-	DockerArgs string            `json:"dockerArgs,omitempty"`
-	BidPerGPU  float64           `json:"bidPerGpu,omitempty"` // For spot instances
 }
 
 type Endpoint struct {
@@ -236,4 +247,19 @@ type EndpointHealth struct {
 	WorkersIdle   int    `json:"workersIdle"`
 	WorkersActive int    `json:"workersActive"`
 	WorkersTotal  int    `json:"workersTotal"`
+}
+
+type Secret struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	// Value is not returned for security reasons
+}
+
+type CreateSecretRequest struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type UpdateSecretRequest struct {
+	Value string `json:"value"`
 }

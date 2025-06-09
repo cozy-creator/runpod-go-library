@@ -5,23 +5,8 @@ import (
 	"fmt"
 )
 
-// Secret represents a RunPod secret
-type Secret struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	// Value is not returned for security reasons
-}
 
-// CreateSecretRequest represents a request to create a secret
-type CreateSecretRequest struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
 
-// UpdateSecretRequest represents a request to update a secret
-type UpdateSecretRequest struct {
-	Value string `json:"value"`
-}
 
 // CreateSecret creates a new secret
 func (c *Client) CreateSecret(ctx context.Context, req *CreateSecretRequest) (*Secret, error) {
