@@ -71,7 +71,7 @@ type Pod struct {
 	ContainerDiskInGB int               `json:"containerDiskInGb"`
 	VolumeInGB        int               `json:"volumeInGb"`
 	VolumeMountPath   string            `json:"volumeMountPath"`
-	CostPerHour       string            `json:"costPerHr"`
+	CostPerHour       float64            `json:"costPerHr"`
 	MachineID         string            `json:"machineId"`
 	CreatedAt         *JSONTime         `json:"createdAt"`
 	Env               map[string]string `json:"env"`
