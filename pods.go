@@ -314,48 +314,48 @@ func (c *Client) isPodInErrorState(status string) bool {
 }
 
 
-// ================================
-// CONVENIENCE FUNCTIONS (Based on our scheduler usage)
-// ================================
+// // ================================
+// // CONVENIENCE FUNCTIONS (Based on our scheduler usage)
+// // ================================
 
-// LaunchRunPod is a convenience function that matches our existing GraphQL function signature
-// This makes it easier to replace our existing code (I'll remove this function later)
-func (c *Client) LaunchRunPod(ctx context.Context, imageURL string, envVars map[string]string) (string, error) {
-	// Create a basic pod request with commonly used defaults
-	req := &CreatePodRequest{
-		Name:              fmt.Sprintf("pod-%d", time.Now().Unix()),
-		ImageName:         imageURL,
-		GPUTypeIDs:         []string{"NVIDIA H100 80GB HBM3"},
-		GPUCount:          1,
-		ContainerDiskInGB: 50, 
-		VCPUCount:         2,  
-		VolumeInGB:        15, 
-		CloudType:         "SECURE",
-		Env:               envVars,
-		DockerArgs:        "--shm-size=1g", 
-		Ports:             []string{"8080/http"}, 
-		VolumeMountPath:   "/workspace", 
-	}
+// // LaunchRunPod is a convenience function that matches our existing GraphQL function signature
+// // This makes it easier to replace our existing code (I'll remove this function later)
+// func (c *Client) LaunchRunPod(ctx context.Context, imageURL string, envVars map[string]string) (string, error) {
+// 	// Create a basic pod request with commonly used defaults
+// 	req := &CreatePodRequest{
+// 		Name:              fmt.Sprintf("pod-%d", time.Now().Unix()),
+// 		ImageName:         imageURL,
+// 		GPUTypeIDs:         []string{"NVIDIA H100 80GB HBM3"},
+// 		GPUCount:          1,
+// 		ContainerDiskInGB: 50, 
+// 		VCPUCount:         2,  
+// 		VolumeInGB:        15, 
+// 		CloudType:         "SECURE",
+// 		Env:               envVars,
+// 		DockerArgs:        "--shm-size=1g", 
+// 		Ports:             []string{"8080/http"}, 
+// 		VolumeMountPath:   "/workspace", 
+// 	}
 
-	pod, err := c.CreatePod(ctx, req)
-	if err != nil {
-		return "", err
-	}
+// 	pod, err := c.CreatePod(ctx, req)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	return pod.ID, nil
-}
+// 	return pod.ID, nil
+// }
 
-// LaunchRunPodWithConfig launches a pod with more specific configuration
-func (c *Client) LaunchRunPodWithConfig(ctx context.Context, config *CreatePodRequest) (string, error) {
-	pod, err := c.CreatePod(ctx, config)
-	if err != nil {
-		return "", err
-	}
+// // LaunchRunPodWithConfig launches a pod with more specific configuration
+// func (c *Client) LaunchRunPodWithConfig(ctx context.Context, config *CreatePodRequest) (string, error) {
+// 	pod, err := c.CreatePod(ctx, config)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	return pod.ID, nil
-}
+// 	return pod.ID, nil
+// }
 
-// GetPodStatusString returns the pod status as a string (matches your existing function)
-func (c *Client) GetPodStatusString(ctx context.Context, podID string) (string, error) {
-	return c.GetPodStatus(ctx, podID)
-}
+// // GetPodStatusString returns the pod status as a string (matches your existing function)
+// func (c *Client) GetPodStatusString(ctx context.Context, podID string) (string, error) {
+// 	return c.GetPodStatus(ctx, podID)
+// }
