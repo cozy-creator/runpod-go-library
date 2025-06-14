@@ -169,6 +169,7 @@ type Job struct {
 	Status        string      `json:"status"`
 	Input         interface{} `json:"input"`
 	Output        interface{} `json:"output,omitempty"`
+	Stream        interface{} `json:"stream,omitempty"`
 	Error         string      `json:"error,omitempty"`
 	CreatedAt     *JSONTime   `json:"createdAt"`
 	StartedAt     *JSONTime   `json:"startedAt,omitempty"`
