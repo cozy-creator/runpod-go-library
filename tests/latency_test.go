@@ -1,4 +1,4 @@
-package main
+package runpod_test
 
 import (
 	"bytes"
@@ -39,9 +39,9 @@ type GraphQLResponse struct {
 type GraphQLPodResponse struct {
 	Data struct {
 		PodFindAndDeployOnDemand struct {
-			ID          string `json:"id"`
-			ImageName   string `json:"imageName"`
-			MachineID   string `json:"machineId"`
+			ID            string `json:"id"`
+			ImageName     string `json:"imageName"`
+			MachineID     string `json:"machineId"`
 			DesiredStatus string `json:"desiredStatus"`
 		} `json:"podFindAndDeployOnDemand"`
 	} `json:"data"`
@@ -70,12 +70,12 @@ type RESTCreatePodRequest struct {
 }
 
 type RESTPodResponse struct {
-	ID                string            `json:"id"`
-	Name              string            `json:"name"`
-	DesiredStatus     string            `json:"desiredStatus"`
-	ImageName         string            `json:"image"`
-	MachineID         string            `json:"machineId"`
-	Env               map[string]string `json:"env"`
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	DesiredStatus string            `json:"desiredStatus"`
+	ImageName     string            `json:"image"`
+	MachineID     string            `json:"machineId"`
+	Env           map[string]string `json:"env"`
 }
 
 // Test result structures
@@ -147,7 +147,7 @@ func (c *GraphQLClient) CreatePod(ctx context.Context, name string) (*GraphQLPod
 	}`
 
 	req := GraphQLRequest{Query: query}
-	
+
 	var response GraphQLPodResponse
 	err := c.makeRequest(ctx, req, &response)
 	return &response, err
@@ -162,7 +162,7 @@ func (c *GraphQLClient) TerminatePod(ctx context.Context, podID string) error {
 	}`
 
 	req := GraphQLRequest{Query: query}
-	
+
 	var response GraphQLTerminateResponse
 	return c.makeRequest(ctx, req, &response)
 }
@@ -234,7 +234,7 @@ func (c *RESTClient) TerminatePod(ctx context.Context, podID string) error {
 
 func (c *RESTClient) makeRequest(ctx context.Context, method, endpoint string, body interface{}, result interface{}) error {
 	var reqBody io.Reader
-	
+
 	if body != nil {
 		jsonData, err := json.Marshal(body)
 		if err != nil {
@@ -277,12 +277,12 @@ func (c *RESTClient) makeRequest(ctx context.Context, method, endpoint string, b
 func testGraphQLLatency(client *GraphQLClient, iteration int) LatencyResult {
 	ctx := context.Background()
 	name := fmt.Sprintf("gql-latency-test-%d-%d", time.Now().Unix(), iteration)
-	
+
 	// Measure pod creation
 	createStart := time.Now()
 	pod, err := client.CreatePod(ctx, name)
 	createTime := time.Since(createStart)
-	
+
 	if err != nil {
 		return LatencyResult{
 			CreateTime: createTime,
@@ -309,7 +309,7 @@ func testGraphQLLatency(client *GraphQLClient, iteration int) LatencyResult {
 	terminateStart := time.Now()
 	err = client.TerminatePod(ctx, podID)
 	terminateTime := time.Since(terminateStart)
-	
+
 	if err != nil {
 		return LatencyResult{
 			CreateTime:    createTime,
@@ -332,12 +332,12 @@ func testGraphQLLatency(client *GraphQLClient, iteration int) LatencyResult {
 func testRESTLatency(client *RESTClient, iteration int) LatencyResult {
 	ctx := context.Background()
 	name := fmt.Sprintf("rest-latency-test-%d-%d", time.Now().Unix(), iteration)
-	
+
 	// Measure pod creation
 	createStart := time.Now()
 	pod, err := client.CreatePod(ctx, name)
 	createTime := time.Since(createStart)
-	
+
 	if err != nil {
 		return LatencyResult{
 			CreateTime: createTime,
@@ -364,7 +364,7 @@ func testRESTLatency(client *RESTClient, iteration int) LatencyResult {
 	terminateStart := time.Now()
 	err = client.TerminatePod(ctx, podID)
 	terminateTime := time.Since(terminateStart)
-	
+
 	if err != nil {
 		return LatencyResult{
 			CreateTime:    createTime,
@@ -421,10 +421,10 @@ func printResults(results ComparisonResults) {
 	// Individual results
 	fmt.Println("\n📊 INDIVIDUAL TEST RESULTS:")
 	fmt.Println(strings.Repeat("-", 70))
-	
+
 	fmt.Printf("%-15s %-15s %-15s %-15s %s\n", "Test", "Create", "Terminate", "Total", "Status")
 	fmt.Println(strings.Repeat("-", 70))
-	
+
 	for i := 0; i < len(results.GraphQLResults) || i < len(results.RESTResults); i++ {
 		if i < len(results.GraphQLResults) {
 			r := results.GraphQLResults[i]
@@ -432,24 +432,24 @@ func printResults(results ComparisonResults) {
 			if !r.Success {
 				status = "❌ " + r.Error
 			}
-			fmt.Printf("GraphQL #%-6d %-15s %-15s %-15s %s\n", 
-				i+1, r.CreateTime.Round(time.Millisecond), 
-				r.TerminateTime.Round(time.Millisecond), 
+			fmt.Printf("GraphQL #%-6d %-15s %-15s %-15s %s\n",
+				i+1, r.CreateTime.Round(time.Millisecond),
+				r.TerminateTime.Round(time.Millisecond),
 				r.TotalTime.Round(time.Millisecond), status)
 		}
-		
+
 		if i < len(results.RESTResults) {
 			r := results.RESTResults[i]
 			status := "✅ Success"
 			if !r.Success {
 				status = "❌ " + r.Error
 			}
-			fmt.Printf("REST #%-9d %-15s %-15s %-15s %s\n", 
-				i+1, r.CreateTime.Round(time.Millisecond), 
-				r.TerminateTime.Round(time.Millisecond), 
+			fmt.Printf("REST #%-9d %-15s %-15s %-15s %s\n",
+				i+1, r.CreateTime.Round(time.Millisecond),
+				r.TerminateTime.Round(time.Millisecond),
 				r.TotalTime.Round(time.Millisecond), status)
 		}
-		
+
 		if i < len(results.GraphQLResults) && i < len(results.RESTResults) {
 			fmt.Println(strings.Repeat("-", 35))
 		}
@@ -458,17 +458,17 @@ func printResults(results ComparisonResults) {
 	// Average comparison
 	fmt.Println("\n🏆 AVERAGE LATENCY COMPARISON:")
 	fmt.Println(strings.Repeat("-", 70))
-	
+
 	if results.GraphQLAvg.Success && results.RESTAvg.Success {
 		fmt.Printf("%-15s %-15s %-15s %-15s\n", "API", "Create", "Terminate", "Total")
 		fmt.Println(strings.Repeat("-", 70))
-		fmt.Printf("%-15s %-15s %-15s %-15s\n", 
-			"GraphQL", 
+		fmt.Printf("%-15s %-15s %-15s %-15s\n",
+			"GraphQL",
 			results.GraphQLAvg.CreateTime.Round(time.Millisecond),
 			results.GraphQLAvg.TerminateTime.Round(time.Millisecond),
 			results.GraphQLAvg.TotalTime.Round(time.Millisecond))
-		fmt.Printf("%-15s %-15s %-15s %-15s\n", 
-			"REST", 
+		fmt.Printf("%-15s %-15s %-15s %-15s\n",
+			"REST",
 			results.RESTAvg.CreateTime.Round(time.Millisecond),
 			results.RESTAvg.TerminateTime.Round(time.Millisecond),
 			results.RESTAvg.TotalTime.Round(time.Millisecond))
@@ -479,8 +479,8 @@ func printResults(results ComparisonResults) {
 		totalDiff := results.RESTAvg.TotalTime - results.GraphQLAvg.TotalTime
 
 		fmt.Println(strings.Repeat("-", 70))
-		fmt.Printf("%-15s %-15s %-15s %-15s\n", 
-			"Difference", 
+		fmt.Printf("%-15s %-15s %-15s %-15s\n",
+			"Difference",
 			formatDifference(createDiff),
 			formatDifference(terminateDiff),
 			formatDifference(totalDiff))
@@ -488,7 +488,7 @@ func printResults(results ComparisonResults) {
 		// Winner analysis
 		fmt.Println("\n🎯 PERFORMANCE ANALYSIS:")
 		fmt.Println(strings.Repeat("-", 40))
-		
+
 		if totalDiff < 0 {
 			fmt.Printf("🥇 Winner: REST API (%.0fms faster overall)\n", float64(-totalDiff)/float64(time.Millisecond))
 		} else if totalDiff > 0 {
@@ -499,12 +499,12 @@ func printResults(results ComparisonResults) {
 
 		createPercent := float64(createDiff) / float64(results.GraphQLAvg.CreateTime) * 100
 		totalPercent := float64(totalDiff) / float64(results.GraphQLAvg.TotalTime) * 100
-		
-		fmt.Printf("📈 REST is %.1f%% %s than GraphQL for pod creation\n", 
-			abs(createPercent), 
+
+		fmt.Printf("📈 REST is %.1f%% %s than GraphQL for pod creation\n",
+			abs(createPercent),
 			ternary(createPercent > 0, "slower", "faster"))
-		fmt.Printf("📊 REST is %.1f%% %s than GraphQL overall\n", 
-			abs(totalPercent), 
+		fmt.Printf("📊 REST is %.1f%% %s than GraphQL overall\n",
+			abs(totalPercent),
 			ternary(totalPercent > 0, "slower", "faster"))
 	}
 
@@ -536,7 +536,7 @@ func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
-	}	
+	}
 
 	apiKey := os.Getenv("RUNPOD_API_KEY")
 	if apiKey == "" {
@@ -559,7 +559,7 @@ func main() {
 	for i := 0; i < NumIterations; i++ {
 		result := testGraphQLLatency(graphqlClient, i+1)
 		results.GraphQLResults = append(results.GraphQLResults, result)
-		
+
 		// Wait between tests to avoid rate limiting
 		if i < NumIterations-1 {
 			time.Sleep(3 * time.Second)
@@ -574,7 +574,7 @@ func main() {
 	for i := 0; i < NumIterations; i++ {
 		result := testRESTLatency(restClient, i+1)
 		results.RESTResults = append(results.RESTResults, result)
-		
+
 		// Wait between tests to avoid rate limiting
 		if i < NumIterations-1 {
 			time.Sleep(3 * time.Second)

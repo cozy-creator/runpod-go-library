@@ -5,12 +5,14 @@ A comprehensive Go client library for the RunPod REST API, providing programmati
 ## 🚀 Features
 
 - ✅ **Pod Management** - Create, monitor, and manage GPU/CPU pods
+- ✅ **Serverless Jobs** - Submit, monitor, and manage serverless job execution
 - ✅ **Complete REST API** - Full RunPod REST API support
 - ✅ **Error Handling** - Comprehensive error types and retry logic
 - ✅ **Type Safety** - Strong typing for all API responses
 - ✅ **Debug Support** - Optional request/response logging
 - ✅ **Thread Safe** - Safe for concurrent use
-- 🔄 **Serverless Support** - Job submission and management (coming soon)
+- ✅ **Streaming Support** - Real-time job result streaming
+- 🔄 **Endpoint Management** - Serverless endpoint lifecycle (coming soon)
 - 🔄 **Templates** - Pod and serverless templates (coming soon)
 
 ## 📦 Installation
@@ -31,8 +33,9 @@ import (
     "context"
     "fmt"
     "log"
+    "time"
     
-    "github.com/yourname/runpod-go"
+    "github.com/cozy-creator/runpod-go-library"
 )
 
 func main() {
@@ -102,6 +105,140 @@ if err != nil {
     log.Fatal("Failed to terminate pod:", err)
 }
 fmt.Printf("🗑️  Pod terminated\n")
+```
+
+### Serverless Job Management
+
+```go
+ctx := context.Background()
+
+// 1. Submit an asynchronous job
+input := map[string]interface{}{
+    "prompt": "A beautiful sunset over mountains",
+    "steps":  20,
+    "width":  512,
+    "height": 512,
+}
+
+job, err := client.RunAsync(ctx, "your-endpoint-id", input)
+if err != nil {
+    log.Fatal("Failed to submit job:", err)
+}
+fmt.Printf("🚀 Job submitted: %s (Status: %s)\n", job.ID, job.Status)
+
+// 2. Monitor job progress
+for {
+    job, err = client.GetJobStatus(ctx, "your-endpoint-id", job.ID)
+    if err != nil {
+        log.Fatal("Failed to get job status:", err)
+    }
+    
+    fmt.Printf("📊 Job %s status: %s\n", job.ID, job.Status)
+    
+    if client.IsJobTerminal(job.Status) {
+        break
+    }
+    
+    time.Sleep(2 * time.Second)
+}
+
+// 3. Get final results
+if job.Status == "COMPLETED" {
+    fmt.Printf("✅ Job completed! Output: %+v\n", job.Output)
+} else {
+    fmt.Printf("❌ Job failed: %s\n", job.Error)
+}
+
+// 4. Submit synchronous job (wait for completion)
+syncJob, err := client.RunSync(ctx, "your-endpoint-id", input)
+if err != nil {
+    log.Fatal("Failed to run sync job:", err)
+}
+fmt.Printf("⚡ Sync job completed: %+v\n", syncJob.Output)
+
+// 5. Stream job results in real-time
+jobChan, errChan := client.StreamResultsContinuous(ctx, "your-endpoint-id", job.ID, 1*time.Second)
+
+for {
+    select {
+    case job := <-jobChan:
+        if job == nil {
+            fmt.Println("🏁 Streaming completed")
+            return
+        }
+        fmt.Printf("📡 Streaming update: %s - %+v\n", job.Status, job.Output)
+        
+        if client.IsJobTerminal(job.Status) {
+            fmt.Println("🏁 Job completed via streaming")
+            return
+        }
+        
+    case err := <-errChan:
+        log.Printf("❌ Streaming error: %v", err)
+        return
+        
+    case <-time.After(30 * time.Second):
+        fmt.Println("⏰ Streaming timeout")
+        return
+    }
+}
+```
+
+### Advanced Job Operations
+
+```go
+ctx := context.Background()
+
+// 1. Submit multiple jobs in batch
+inputs := []interface{}{
+    map[string]string{"prompt": "cat"},
+    map[string]string{"prompt": "dog"},
+    map[string]string{"prompt": "bird"},
+}
+
+jobs, err := client.SubmitMultipleJobs(ctx, "your-endpoint-id", inputs)
+if err != nil {
+    log.Fatal("Failed to submit multiple jobs:", err)
+}
+fmt.Printf("🔄 Submitted %d jobs\n", len(jobs))
+
+// 2. Run and wait with timeout
+job, err := client.RunAndWait(ctx, "your-endpoint-id", input, 5*time.Minute)
+if err != nil {
+    log.Fatal("Job failed or timed out:", err)
+}
+fmt.Printf("⏱️  Job completed in %d seconds\n", job.ExecutionTime)
+
+// 3. Quick run (tries sync first, falls back to async)
+job, err = client.QuickRun(ctx, "your-endpoint-id", input)
+if err != nil {
+    log.Fatal("Quick run failed:", err)
+}
+fmt.Printf("🏃 Quick run result: %+v\n", job.Output)
+
+// 4. Job management operations
+err = client.CancelJob(ctx, "your-endpoint-id", "job-id")
+if err != nil {
+    log.Printf("Failed to cancel job: %v", err)
+}
+
+retryJob, err := client.RetryJob(ctx, "your-endpoint-id", "failed-job-id")
+if err != nil {
+    log.Printf("Failed to retry job: %v", err)
+}
+
+err = client.PurgeQueue(ctx, "your-endpoint-id")
+if err != nil {
+    log.Printf("Failed to purge queue: %v", err)
+}
+
+// 5. Check endpoint health
+health, err := client.GetHealth(ctx, "your-endpoint-id")
+if err != nil {
+    log.Fatal("Failed to get health:", err)
+}
+fmt.Printf("🏥 Endpoint health: %s (Queue: %d, Workers: %d/%d)\n", 
+    health.Status, health.JobsInQueue, health.WorkersActive, health.WorkersTotal)
 ```
 
 ### Advanced Pod Creation
@@ -193,6 +330,25 @@ client := runpod.NewClient("your-api-key",
 | `WaitForPodStatus()` | Wait for specific status |
 | `FindPodByName()` | Find pod by name |
 
+## ⚡ Serverless Job Functions
+
+| Function | Description |
+|----------|-------------|
+| `RunAsync()` | Submit asynchronous job |
+| `RunSync()` | Submit synchronous job |
+| `GetJobStatus()` | Get job status and results |
+| `WaitForJobCompletion()` | Wait for job to complete |
+| `StreamResults()` | Stream job results once |
+| `StreamResultsContinuous()` | Stream job results continuously |
+| `CancelJob()` | Cancel running job |
+| `RetryJob()` | Retry failed job |
+| `PurgeQueue()` | Clear endpoint queue |
+| `GetHealth()` | Get endpoint health |
+| `SubmitMultipleJobs()` | Submit multiple jobs |
+| `RunAndWait()` | Submit job and wait for completion |
+| `QuickRun()` | Smart job submission (sync/async) |
+| `IsJobTerminal()` | Check if job status is final |
+
 ## 🚨 Error Handling
 
 The library provides detailed error classification:
@@ -266,31 +422,35 @@ type Pod struct {
     // ... and many more fields
 }
 
-type CreatePodRequest struct {
-    Name              string            `json:"name"`
-    ImageName         string            `json:"imageName"`
-    GPUTypeID         string            `json:"gpuTypeId"`
-    GPUCount          int               `json:"gpuCount"`
-    // ... comprehensive configuration options
+type Job struct {
+    ID            string                 `json:"id"`
+    Status        string                 `json:"status"`
+    Input         map[string]interface{} `json:"input"`
+    Output        interface{}            `json:"output"`
+    Error         string                 `json:"error"`
+    CreatedAt     *JSONTime              `json:"createdAt"`
+    StartedAt     *JSONTime              `json:"startedAt"`
+    CompletedAt   *JSONTime              `json:"completedAt"`
+    ExecutionTime int                    `json:"executionTimeInMs"`
+    EndpointID    string                 `json:"endpointId"`
+}
+
+type EndpointHealth struct {
+    Status        string `json:"status"`
+    JobsInQueue   int    `json:"jobsInQueue"`
+    WorkersIdle   int    `json:"workersIdle"`
+    WorkersActive int    `json:"workersRunning"`
+    WorkersTotal  int    `json:"workersTotal"`
 }
 ```
 
 ## 🎯 What's Implemented Now
 
 - ✅ **Phase 1: Core Infrastructure** - Client, authentication, error handling
-- ✅ **Phase 2: Pod Management** - Complete pod lifecycle management
+- ✅ **Phase 2: Pod Management** - Complete pod lifecycle management  
+- ✅ **Phase 3: Serverless Jobs** - Complete job execution and monitoring
 
 ## 🚧 Coming Soon
-
-### Phase 3: Serverless Job Operations 📦
-- [ ] **RunAsync** - Submit asynchronous jobs to serverless endpoints
-- [ ] **RunSync** - Submit synchronous jobs with immediate results  
-- [ ] **GetJobStatus** - Check job status and progress
-- [ ] **CancelJob** - Cancel running or queued jobs
-- [ ] **RetryJob** - Retry failed jobs
-- [ ] **PurgeQueue** - Clear endpoint job queue
-- [ ] **GetHealth** - Check endpoint health and worker status
-- [ ] **StreamResults** - Stream job results in real-time
 
 ### Phase 4: Endpoint Management 🔄  
 - [ ] **CreateEndpoint** - Create new serverless endpoints
@@ -319,6 +479,30 @@ type CreatePodRequest struct {
 - [ ] **FileUpload/Download** - Handle large file transfers
 - [ ] **NetworkVolumes** - Manage persistent storage volumes
 - [ ] **Secrets Management** - Handle environment secrets securely
+
+## 🧪 Testing
+
+The library includes comprehensive test coverage:
+
+```bash
+# Run all tests
+go test ./...
+
+# Run tests with coverage
+go test -v -cover ./...
+
+# Run specific test suites
+go test -v ./tests/ -run TestPod
+go test -v ./tests/ -run TestJob
+go test -v ./tests/ -run TestStream
+```
+
+### Test Features
+- ✅ **Unit tests** with comprehensive mock servers
+- ✅ **Integration tests** for real API validation
+- ✅ **Error handling tests** for all error types
+- ✅ **Streaming tests** for real-time job monitoring
+- ✅ **Concurrent safety tests** for thread safety
 
 ## 🤝 Contributing
 
