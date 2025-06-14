@@ -19,7 +19,7 @@ const (
 	DefaultBaseURL = "https://rest.runpod.io/v1"
 
 	// DefaultServerlessBaseURL is the base URL for serverless operations
-	DefaultServerlessBaseURL = "https://api.runpod.ai/v2"
+	DefaultServerlessBaseURL = "https://api.runpod.ai"
 
 	// DefaultTimeout is the default HTTP client timeout
 	DefaultTimeout = 30 * time.Second
