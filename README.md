@@ -272,23 +272,24 @@ if err != nil {
 fmt.Printf("🎉 Advanced pod created: %s\n", pod.ID)
 ```
 
-### Spot/Interruptible Pods
+### Community Cloud Pods
 
 ```go
-// Create a spot instance with bidding
+// Create a community cloud pod (lower cost, spot-like instances)
 req := &runpod.CreatePodRequest{
-    Name:              "spot-training-pod",
+    Name:              "community-training-pod",
     ImageName:         "runpod/pytorch:latest",
     GPUTypeID:         "NVIDIA GeForce RTX 4090",
     GPUCount:          1,
     ContainerDiskInGB: 50,
-    BidPerGPU:         0.50, // Bid $0.50 per GPU per hour
-    CloudType:         "COMMUNITY",
+    CloudType:         "COMMUNITY", // Community cloud for lower costs
 }
 
 pod, err := client.CreatePod(ctx, req)
-// or use the convenience function:
-// pod, err := client.CreateSpotPod(ctx, req, 0.50)
+if err != nil {
+    log.Fatal("Failed to create community pod:", err)
+}
+fmt.Printf("🎉 Community pod created: %s\n", pod.ID)
 ```
 
 ## 🔧 Configuration Options
