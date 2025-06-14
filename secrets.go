@@ -5,9 +5,6 @@ import (
 	"fmt"
 )
 
-
-
-
 // CreateSecret creates a new secret
 func (c *Client) CreateSecret(ctx context.Context, req *CreateSecretRequest) (*Secret, error) {
 	if err := c.validateCreateSecretRequest(req); err != nil {
@@ -99,11 +96,11 @@ func (c *Client) DeleteSecret(ctx context.Context, name string) error {
 // ListSecrets lists all secrets (values not included)
 func (c *Client) ListSecrets(ctx context.Context, opts *ListOptions) ([]*Secret, error) {
 	endpoint := c.buildListURL("/secrets", opts)
-	
+
 	var response struct {
 		Secrets []*Secret `json:"secrets"`
 	}
-	
+
 	err := c.Get(ctx, endpoint, &response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list secrets: %w", err)
@@ -127,7 +124,6 @@ func (c *Client) validateCreateSecretRequest(req *CreateSecretRequest) error {
 
 	return nil
 }
-
 
 // Convenience Function matching my previous code (will be removed in the future)
 

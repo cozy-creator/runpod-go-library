@@ -50,11 +50,11 @@ func (c *Client) GetPod(ctx context.Context, podID string) (*Pod, error) {
 // ListPods lists all pods with optional filtering
 func (c *Client) ListPods(ctx context.Context, opts *ListOptions) ([]*Pod, error) {
 	endpoint := c.buildListURL("/pods", opts)
-	
+
 	var response struct {
 		Pods []*Pod `json:"pods"`
 	}
-	
+
 	err := c.Get(ctx, endpoint, &response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list pods: %w", err)
@@ -118,7 +118,7 @@ func (c *Client) GetPodLogs(ctx context.Context, podID string) (string, error) {
 	var response struct {
 		Logs string `json:"logs"`
 	}
-	
+
 	endpoint := fmt.Sprintf("/pods/%s/logs", podID)
 	err := c.Get(ctx, endpoint, &response)
 	if err != nil {
@@ -127,7 +127,6 @@ func (c *Client) GetPodLogs(ctx context.Context, podID string) (string, error) {
 
 	return response.Logs, nil
 }
-
 
 // GetPodStatus gets just the status of a pod (lighter than GetPod)
 func (c *Client) GetPodStatus(ctx context.Context, podID string) (string, error) {
@@ -303,16 +302,15 @@ func (c *Client) validateCreatePodRequest(req *CreatePodRequest) error {
 func (c *Client) isPodInErrorState(status string) bool {
 	errorStates := []string{"EXITED", "DEAD", "TERMINATED", "FAILED"}
 	upperStatus := strings.ToUpper(status)
-	
+
 	for _, errorState := range errorStates {
 		if upperStatus == errorState {
 			return true
 		}
 	}
-	
+
 	return false
 }
-
 
 // // ================================
 // // CONVENIENCE FUNCTIONS (Based on our scheduler usage)
@@ -327,14 +325,14 @@ func (c *Client) isPodInErrorState(status string) bool {
 // 		ImageName:         imageURL,
 // 		GPUTypeIDs:         []string{"NVIDIA H100 80GB HBM3"},
 // 		GPUCount:          1,
-// 		ContainerDiskInGB: 50, 
-// 		VCPUCount:         2,  
-// 		VolumeInGB:        15, 
+// 		ContainerDiskInGB: 50,
+// 		VCPUCount:         2,
+// 		VolumeInGB:        15,
 // 		CloudType:         "SECURE",
 // 		Env:               envVars,
-// 		DockerArgs:        "--shm-size=1g", 
-// 		Ports:             []string{"8080/http"}, 
-// 		VolumeMountPath:   "/workspace", 
+// 		DockerArgs:        "--shm-size=1g",
+// 		Ports:             []string{"8080/http"},
+// 		VolumeMountPath:   "/workspace",
 // 	}
 
 // 	pod, err := c.CreatePod(ctx, req)

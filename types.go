@@ -71,12 +71,12 @@ type Pod struct {
 	ContainerDiskInGB int               `json:"containerDiskInGb"`
 	VolumeInGB        int               `json:"volumeInGb"`
 	VolumeMountPath   string            `json:"volumeMountPath"`
-	CostPerHour       float64            `json:"costPerHr"`
+	CostPerHour       float64           `json:"costPerHr"`
 	MachineID         string            `json:"machineId"`
 	CreatedAt         *JSONTime         `json:"createdAt"`
 	Env               map[string]string `json:"env"`
 	Ports             []string          `json:"ports"`
-	LastStartedAt     *JSONTime        `json:"lastStartedAt"`
+	LastStartedAt     *JSONTime         `json:"lastStartedAt"`
 	AdjustedCostPerHr float64           `json:"adjustedCostPerHr"`
 	Locked            bool              `json:"locked"`
 	Interruptible     bool              `json:"interruptible"`
@@ -94,36 +94,35 @@ type PodRuntime struct {
 }
 
 type CreatePodRequest struct {
-	Name                    string            `json:"name"`
-	ImageName               string            `json:"imageName"`
-	GPUTypeIDs              []string          `json:"gpuTypeIds"`
-	GPUCount                int               `json:"gpuCount"`
-	VCPUCount               int               `json:"vcpuCount,omitempty"`
-	ContainerDiskInGB       int               `json:"containerDiskInGb"`
-	VolumeInGB              int               `json:"volumeInGb,omitempty"`
-	VolumeMountPath         string            `json:"volumeMountPath,omitempty"`
-	DataCenterIDs           []string          `json:"dataCenterIds,omitempty"`
-	Env                     map[string]string `json:"env,omitempty"`
-	Ports                   []string          `json:"ports,omitempty"`
-	DockerArgs              string            `json:"dockerArgs,omitempty"`
-	NetworkVolumeID         string            `json:"networkVolumeId,omitempty"`
-	CloudType               string            `json:"cloudType,omitempty"`          // "SECURE" or "COMMUNITY"
-	Interruptible           bool              `json:"interruptible,omitempty"`      // For spot instances
-	SupportPublicIP         bool              `json:"supportPublicIp,omitempty"`
-	TemplateID              string            `json:"templateId,omitempty"`
-	
+	Name              string            `json:"name"`
+	ImageName         string            `json:"imageName"`
+	GPUTypeIDs        []string          `json:"gpuTypeIds"`
+	GPUCount          int               `json:"gpuCount"`
+	VCPUCount         int               `json:"vcpuCount,omitempty"`
+	ContainerDiskInGB int               `json:"containerDiskInGb"`
+	VolumeInGB        int               `json:"volumeInGb,omitempty"`
+	VolumeMountPath   string            `json:"volumeMountPath,omitempty"`
+	DataCenterIDs     []string          `json:"dataCenterIds,omitempty"`
+	Env               map[string]string `json:"env,omitempty"`
+	Ports             []string          `json:"ports,omitempty"`
+	DockerArgs        string            `json:"dockerArgs,omitempty"`
+	NetworkVolumeID   string            `json:"networkVolumeId,omitempty"`
+	CloudType         string            `json:"cloudType,omitempty"`     // "SECURE" or "COMMUNITY"
+	Interruptible     bool              `json:"interruptible,omitempty"` // For spot instances
+	SupportPublicIP   bool              `json:"supportPublicIp,omitempty"`
+	TemplateID        string            `json:"templateId,omitempty"`
+
 	// Additional REST API fields
-	ComputeType             string            `json:"computeType,omitempty"`        // "GPU" or "CPU"
-	DockerEntrypoint        []string          `json:"dockerEntrypoint,omitempty"`
-	DockerStartCmd          []string          `json:"dockerStartCmd,omitempty"`
-	GPUTypePriority         string            `json:"gpuTypePriority,omitempty"`    
-	DataCenterPriority      string            `json:"dataCenterPriority,omitempty"` 
+	ComputeType        string   `json:"computeType,omitempty"` // "GPU" or "CPU"
+	DockerEntrypoint   []string `json:"dockerEntrypoint,omitempty"`
+	DockerStartCmd     []string `json:"dockerStartCmd,omitempty"`
+	GPUTypePriority    string   `json:"gpuTypePriority,omitempty"`
+	DataCenterPriority string   `json:"dataCenterPriority,omitempty"`
 }
 
-
 type UpdatePodRequest struct {
-	Name       string            `json:"name,omitempty"`
-	Env        map[string]string `json:"env,omitempty"`
+	Name string            `json:"name,omitempty"`
+	Env  map[string]string `json:"env,omitempty"`
 }
 
 type Endpoint struct {
@@ -166,17 +165,17 @@ type UpdateEndpointRequest struct {
 }
 
 type Job struct {
-	ID             string      `json:"id"`
-	Status         string      `json:"status"`
-	Input          interface{} `json:"input"`
-	Output         interface{} `json:"output,omitempty"`
-	Error          string      `json:"error,omitempty"`
-	CreatedAt      *JSONTime   `json:"createdAt"`
-	StartedAt      *JSONTime  `json:"startedAt,omitempty"`
-	CompletedAt    *JSONTime  `json:"completedAt,omitempty"`
-	ExecutionTime  int         `json:"executionTimeMs,omitempty"`
-	RetryCount     int         `json:"retryCount,omitempty"`
-	EndpointID     string      `json:"endpointId,omitempty"`
+	ID            string      `json:"id"`
+	Status        string      `json:"status"`
+	Input         interface{} `json:"input"`
+	Output        interface{} `json:"output,omitempty"`
+	Error         string      `json:"error,omitempty"`
+	CreatedAt     *JSONTime   `json:"createdAt"`
+	StartedAt     *JSONTime   `json:"startedAt,omitempty"`
+	CompletedAt   *JSONTime   `json:"completedAt,omitempty"`
+	ExecutionTime int         `json:"executionTimeMs,omitempty"`
+	RetryCount    int         `json:"retryCount,omitempty"`
+	EndpointID    string      `json:"endpointId,omitempty"`
 }
 
 type RunJobRequest struct {
@@ -187,7 +186,7 @@ type JobStatus string
 
 const (
 	JobStatusInQueue    JobStatus = "IN_QUEUE"
-	JobStatusInProgress JobStatus = "IN_PROGRESS" 
+	JobStatusInProgress JobStatus = "IN_PROGRESS"
 	JobStatusCompleted  JobStatus = "COMPLETED"
 	JobStatusFailed     JobStatus = "FAILED"
 	JobStatusCancelled  JobStatus = "CANCELLED"
@@ -251,7 +250,7 @@ type GPUType struct {
 }
 
 type Price struct {
-	MinimumBidPrice float64 `json:"minimumBidPrice"`
+	MinimumBidPrice      float64 `json:"minimumBidPrice"`
 	UninterruptablePrice float64 `json:"uninterruptablePrice"`
 	InterruptablePrice   float64 `json:"interruptablePrice,omitempty"`
 }
@@ -264,12 +263,12 @@ type Datacenter struct {
 }
 
 type AccountInfo struct {
-	ID               string  `json:"id"`
-	Email            string  `json:"email"`
-	Balance          float64 `json:"balance"`
-	SpendLimit       float64 `json:"spendLimit,omitempty"`
+	ID                string  `json:"id"`
+	Email             string  `json:"email"`
+	Balance           float64 `json:"balance"`
+	SpendLimit        float64 `json:"spendLimit,omitempty"`
 	CurrentSpendPerHr float64 `json:"currentSpendPerHr"`
-	MachineQuota     int     `json:"machineQuota,omitempty"`
+	MachineQuota      int     `json:"machineQuota,omitempty"`
 }
 
 // NetworkVolume represents a network volume
@@ -303,8 +302,8 @@ type EndpointHealth struct {
 }
 
 type Secret struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 	// Value is not returned for security reasons
 }
 

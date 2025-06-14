@@ -3,11 +3,11 @@ package runpod
 import "fmt"
 
 type APIError struct {
-	StatusCode    int     `json:"statusCode"`
-	Message       string  `json:"message"`
-	Details       string  `json:"details,omitempty"`
-	Code          string  `json:"code,omitempty"`
-	RequestID     string  `json:"requestId,omitempty"`
+	StatusCode int    `json:"statusCode"`
+	Message    string `json:"message"`
+	Details    string `json:"details,omitempty"`
+	Code       string `json:"code,omitempty"`
+	RequestID  string `json:"requestId,omitempty"`
 }
 
 func (e *APIError) Error() string {
@@ -46,8 +46,8 @@ func (e *APIError) IsClientError() bool {
 }
 
 type ValidationError struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
+	Field   string      `json:"field"`
+	Message string      `json:"message"`
 	Value   interface{} `json:"value,omitempty"`
 }
 
@@ -106,11 +106,11 @@ func (e *AuthError) Error() string {
 
 // RateLimitError represents a rate limiting error
 type RateLimitError struct {
-	Message     string
-	RetryAfter  string
-	Limit       int    
-	Remaining   int    
-	ResetTime   string 
+	Message    string
+	RetryAfter string
+	Limit      int
+	Remaining  int
+	ResetTime  string
 }
 
 // Error implements the error interface

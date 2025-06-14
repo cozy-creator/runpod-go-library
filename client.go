@@ -14,23 +14,22 @@ import (
 	"time"
 )
 
-
 const (
 	// DefaultBaseURL is the default RunPod REST API base URL
 	DefaultBaseURL = "https://rest.runpod.io/v1"
-	
+
 	// DefaultServerlessBaseURL is the base URL for serverless operations
 	DefaultServerlessBaseURL = "https://api.runpod.ai/v2"
-	
+
 	// DefaultTimeout is the default HTTP client timeout
 	DefaultTimeout = 30 * time.Second
-	
+
 	// DefaultUserAgent is the default user agent string
 	DefaultUserAgent = "runpod-go/1.0.0"
-	
+
 	// MaxRetryAttempts is the maximum number of retry attempts for failed requests
 	MaxRetryAttempts = 3
-	
+
 	// RetryDelay is the base delay between retry attempts
 	RetryDelay = 1 * time.Second
 )
@@ -38,21 +37,21 @@ const (
 // Client represents the RunPod API client
 type Client struct {
 	// API configuration
-	APIKey             string
-	BaseURL            string
-	ServerlessBaseURL  string
-	
+	APIKey            string
+	BaseURL           string
+	ServerlessBaseURL string
+
 	// HTTP client configuration
-	HTTPClient         *http.Client
-	UserAgent          string
-	
+	HTTPClient *http.Client
+	UserAgent  string
+
 	// Client options
-	Debug              bool
-	MaxRetryAttempts   int
-	RetryDelay         time.Duration
-	
+	Debug            bool
+	MaxRetryAttempts int
+	RetryDelay       time.Duration
+
 	// Logger for debug output
-	Logger             Logger
+	Logger Logger
 }
 
 // Logger interface for custom logging
@@ -66,7 +65,6 @@ type defaultLogger struct{}
 func (l *defaultLogger) Printf(format string, v ...interface{}) {
 	log.Printf(format, v...)
 }
-
 
 // ClientOption is a function type for configuring the client
 type ClientOption func(*Client)
@@ -139,19 +137,19 @@ func NewClient(apiKey string, opts ...ClientOption) *Client {
 	if apiKey == "" {
 		panic("API key is required")
 	}
-	
+
 	c := &Client{
-		APIKey:             apiKey,
-		BaseURL:            DefaultBaseURL,
-		ServerlessBaseURL:  DefaultServerlessBaseURL,
+		APIKey:            apiKey,
+		BaseURL:           DefaultBaseURL,
+		ServerlessBaseURL: DefaultServerlessBaseURL,
 		HTTPClient: &http.Client{
 			Timeout: DefaultTimeout,
 		},
-		UserAgent:          DefaultUserAgent,
-		Debug:              false,
-		MaxRetryAttempts:   MaxRetryAttempts,
-		RetryDelay:         RetryDelay,
-		Logger:             &defaultLogger{},
+		UserAgent:        DefaultUserAgent,
+		Debug:            false,
+		MaxRetryAttempts: MaxRetryAttempts,
+		RetryDelay:       RetryDelay,
+		Logger:           &defaultLogger{},
 	}
 
 	// Apply all options
@@ -165,7 +163,7 @@ func NewClient(apiKey string, opts ...ClientOption) *Client {
 // makeRequest performs an HTTP request with retry logic
 func (c *Client) makeRequest(ctx context.Context, method, endpoint string, body interface{}) (*http.Response, error) {
 	var lastErr error
-	
+
 	for attempt := 0; attempt <= c.MaxRetryAttempts; attempt++ {
 		if attempt > 0 {
 			// Wait before retrying
@@ -175,43 +173,43 @@ func (c *Client) makeRequest(ctx context.Context, method, endpoint string, body 
 			case <-time.After(c.RetryDelay * time.Duration(attempt)):
 			}
 		}
-		
+
 		resp, err := c.doRequest(ctx, method, endpoint, body)
 		if err != nil {
 			lastErr = err
-			
+
 			// Check if this is a retryable error
 			if !c.isRetryableError(err) {
 				return nil, err
 			}
-			
+
 			if c.Debug {
 				c.Logger.Printf("[DEBUG] Request attempt %d failed, retrying: %v", attempt+1, err)
 			}
 			continue
 		}
-		
+
 		// Check if response indicates a retryable error
 		if c.isRetryableHTTPStatus(resp.StatusCode) && attempt < c.MaxRetryAttempts {
 			resp.Body.Close()
 			lastErr = fmt.Errorf("HTTP %d: retryable server error", resp.StatusCode)
-			
+
 			if c.Debug {
 				c.Logger.Printf("[DEBUG] HTTP %d received, retrying attempt %d", resp.StatusCode, attempt+1)
 			}
 			continue
 		}
-		
+
 		return resp, nil
 	}
-	
+
 	return nil, fmt.Errorf("request failed after %d attempts: %w", c.MaxRetryAttempts+1, lastErr)
 }
 
 // doRequest performs a single HTTP request
 func (c *Client) doRequest(ctx context.Context, method, endpoint string, body interface{}) (*http.Response, error) {
 	var buf io.Reader
-	
+
 	if body != nil {
 		jsonBody, err := json.Marshal(body)
 		if err != nil {
@@ -222,7 +220,7 @@ func (c *Client) doRequest(ctx context.Context, method, endpoint string, body in
 
 	// Determine the full URL based on endpoint
 	fullURL := c.buildURL(endpoint)
-	
+
 	req, err := http.NewRequestWithContext(ctx, method, fullURL, buf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -256,7 +254,7 @@ func (c *Client) buildURL(endpoint string) string {
 		}
 		return endpoint // Assume it's already a full URL
 	}
-	
+
 	// Standard REST API endpoint
 	return c.BaseURL + endpoint
 }
@@ -265,7 +263,7 @@ func (c *Client) buildURL(endpoint string) string {
 func (c *Client) setRequestHeaders(req *http.Request, hasBody bool) {
 	req.Header.Set("Authorization", "Bearer "+c.APIKey)
 	req.Header.Set("User-Agent", c.UserAgent)
-	
+
 	if hasBody {
 		req.Header.Set("Content-Type", "application/json")
 	}
@@ -362,17 +360,17 @@ func (c *Client) isRetryableError(err error) bool {
 	if IsNetworkError(err) {
 		return true
 	}
-	
+
 	// Timeout errors are retryable
 	if IsTimeoutError(err) {
 		return true
 	}
-	
+
 	// API errors with 5xx status codes are retryable
 	if apiErr, ok := err.(*APIError); ok {
 		return apiErr.IsServerError()
 	}
-	
+
 	return false
 }
 
@@ -393,7 +391,7 @@ func (c *Client) validateRequired(fieldName string, value interface{}) error {
 	if value == nil {
 		return NewValidationError(fieldName, "is required")
 	}
-	
+
 	switch v := value.(type) {
 	case string:
 		if v == "" {
@@ -404,7 +402,7 @@ func (c *Client) validateRequired(fieldName string, value interface{}) error {
 			return NewValidationError(fieldName, "cannot be empty")
 		}
 	}
-	
+
 	return nil
 }
 
@@ -427,23 +425,23 @@ func (c *Client) validatePositiveFloat(fieldName string, value float64) error {
 // buildURLWithParams builds a URL with query parameters
 func (c *Client) buildURLWithParams(endpoint string, params map[string]string) string {
 	baseURL := c.buildURL(endpoint)
-	
+
 	if len(params) == 0 {
 		return baseURL
 	}
-	
+
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return baseURL
 	}
-	
+
 	q := u.Query()
 	for key, value := range params {
 		if value != "" {
 			q.Set(key, value)
 		}
 	}
-	
+
 	u.RawQuery = q.Encode()
 	return u.String()
 }
@@ -453,17 +451,17 @@ func (c *Client) buildListURL(endpoint string, opts *ListOptions) string {
 	if opts == nil {
 		return c.buildURL(endpoint)
 	}
-	
+
 	params := make(map[string]string)
-	
+
 	if opts.Limit > 0 {
 		params["limit"] = strconv.Itoa(opts.Limit)
 	}
-	
+
 	if opts.Offset > 0 {
 		params["offset"] = strconv.Itoa(opts.Offset)
 	}
-	
+
 	return c.buildURLWithParams(endpoint, params)
 }
 

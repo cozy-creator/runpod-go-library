@@ -3,10 +3,9 @@ package runpod
 import (
 	"context"
 	"fmt"
-	"time"
 	"reflect"
+	"time"
 )
-
 
 // =========================
 // SERVERLESS JOB OPERATIONS
@@ -40,9 +39,9 @@ func (c *Client) RunSync(ctx context.Context, endpointID string, input interface
 	}
 
 	req := &RunJobRequest{Input: input}
-	
+
 	endpoint := fmt.Sprintf("/v2/%s/runsync", endpointID)
-	
+
 	var job Job
 	err := c.Post(ctx, endpoint, req, &job)
 	if err != nil {
@@ -62,7 +61,7 @@ func (c *Client) GetJobStatus(ctx context.Context, endpointID, jobID string) (*J
 	}
 
 	endpoint := fmt.Sprintf("/v2/%s/status/%s", endpointID, jobID)
-	
+
 	var job Job
 	err := c.Get(ctx, endpoint, &job)
 	if err != nil {
@@ -82,7 +81,7 @@ func (c *Client) CancelJob(ctx context.Context, endpointID, jobID string) error 
 	}
 
 	endpoint := fmt.Sprintf("/v2/%s/cancel/%s", endpointID, jobID)
-	
+
 	err := c.Post(ctx, endpoint, nil, nil)
 	if err != nil {
 		return fmt.Errorf("failed to cancel job %s on endpoint %s: %w", jobID, endpointID, err)
@@ -101,7 +100,7 @@ func (c *Client) RetryJob(ctx context.Context, endpointID, jobID string) (*Job, 
 	}
 
 	endpoint := fmt.Sprintf("/v2/%s/retry/%s", endpointID, jobID)
-	
+
 	var job Job
 	err := c.Post(ctx, endpoint, nil, &job)
 	if err != nil {
@@ -119,7 +118,7 @@ func (c *Client) PurgeQueue(ctx context.Context, endpointID string) error {
 	}
 
 	endpoint := fmt.Sprintf("/v2/%s/purge-queue", endpointID)
-	
+
 	err := c.Post(ctx, endpoint, nil, nil)
 	if err != nil {
 		return fmt.Errorf("failed to purge queue for endpoint %s: %w", endpointID, err)
@@ -135,7 +134,7 @@ func (c *Client) GetHealth(ctx context.Context, endpointID string) (*EndpointHea
 	}
 
 	endpoint := fmt.Sprintf("/v2/%s/health", endpointID)
-	
+
 	var health EndpointHealth
 	err := c.Get(ctx, endpoint, &health)
 	if err != nil {
@@ -157,7 +156,7 @@ func (c *Client) WaitForJobCompletion(ctx context.Context, endpointID, jobID str
 	}
 
 	deadline := time.Now().Add(maxWaitTime)
-	
+
 	for time.Now().Before(deadline) {
 		job, err := c.GetJobStatus(ctx, endpointID, jobID)
 		if err != nil {
@@ -248,7 +247,7 @@ func (c *Client) WaitForMultipleJobs(ctx context.Context, endpointID string, job
 
 	results := make([]*Job, len(jobIDs))
 	completed := make([]bool, len(jobIDs))
-	
+
 	deadline := time.Now().Add(maxWaitTime)
 
 	for time.Now().Before(deadline) {
@@ -313,7 +312,7 @@ func (c *Client) StreamResults(ctx context.Context, endpointID, jobID string) (*
 
 	// RunPod stream endpoint: /v2/{endpoint_id}/stream/{job_id}
 	endpoint := fmt.Sprintf("/v2/%s/stream/%s", endpointID, jobID)
-	
+
 	var job Job
 	err := c.Get(ctx, endpoint, &job)
 	if err != nil {
@@ -342,7 +341,7 @@ func (c *Client) StreamResultsContinuous(ctx context.Context, endpointID, jobID 
 		defer ticker.Stop()
 
 		var lastOutput interface{}
-		
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -410,6 +409,3 @@ func (c *Client) QuickRun(ctx context.Context, endpointID string, input interfac
 	}
 	return job, nil
 }
-
-
-

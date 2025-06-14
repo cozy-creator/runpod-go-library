@@ -157,16 +157,16 @@ func createMockJob(jobID, status, endpointID string) *runpod.Job {
 		ID:         jobID,
 		Status:     status,
 		Input:      map[string]interface{}{"test": "input"},
-		CreatedAt:  &runpod.JSONTime{now},
+		CreatedAt:  &runpod.JSONTime{Time: now},
 		EndpointID: endpointID,
 	}
 
 	if status == "IN_PROGRESS" || status == "COMPLETED" {
-		job.StartedAt = &runpod.JSONTime{now.Add(-30 * time.Second)}
+		job.StartedAt = &runpod.JSONTime{Time: now.Add(-30 * time.Second)}
 	}
 
 	if status == "COMPLETED" || status == "FAILED" {
-		job.CompletedAt = &runpod.JSONTime{now}
+		job.CompletedAt = &runpod.JSONTime{Time: now}
 		job.ExecutionTime = 1500 // 1.5 seconds
 	}
 
@@ -500,7 +500,7 @@ func TestRunAndWait(t *testing.T) {
 
 	// Since our mock server always returns completed jobs for specific IDs,
 	// we need to test with job-completed
-	// But RunAndWait submits a new job first 
+	// But RunAndWait submits a new job first
 
 	// This is a basic test - (Note: in real implementation, we'd need more sophisticated mocking)
 	job, err := client.RunAndWait(ctx, "endpoint-123", map[string]string{"test": "input"}, 10*time.Second)
